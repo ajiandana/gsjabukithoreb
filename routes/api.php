@@ -1,0 +1,88 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\BaptisApiController;
+use App\Http\Controllers\Api\Auth\EventController;
+use App\Http\Controllers\Api\Auth\WartaController;
+use App\Http\Controllers\Api\Auth\JemaatController;
+use App\Http\Controllers\Api\Auth\KegiatanController;
+use App\Http\Controllers\Api\Auth\PastoralController;
+use App\Http\Controllers\Api\Auth\DepartemenController;
+use App\Http\Controllers\Api\Guest\EventGuestController;
+use App\Http\Controllers\Api\Guest\WartaGuestController;
+use App\Http\Controllers\Api\PermohonanDoaApiController;
+use App\Http\Controllers\Api\Auth\JadwalIbadahController;
+use App\Http\Controllers\Api\Guest\GaleriGuestController;
+use App\Http\Controllers\Api\Guest\JemaatGuestController;
+use App\Http\Controllers\Api\PenyerahanAnakApiController;
+use App\Http\Controllers\Api\Guest\PastoralGuestController;
+use App\Http\Controllers\Api\Pastoral\PermohonanController;
+use App\Http\Controllers\Api\PemberkatanNikahApiController;
+use App\Http\Controllers\Api\Guest\DepartemenGuestController;
+use App\Http\Controllers\Api\Guest\JadwalIbadahGuestController;
+use App\Http\Controllers\Api\Pastoral\JemaatController as PastoralJemaatController;
+use App\Http\Controllers\Api\Pastoral\PastoralController as PastoralPastoralController;
+
+Route::prefix('guest')->group(function () {
+    Route::get('/wartas', [WartaGuestController::class, 'index']);
+    Route::get('/wartas/{id}', [WartaGuestController::class, 'show']);
+    Route::get('/jadwal-ibadahs', [JadwalIbadahGuestController::class, 'index']);
+    Route::get('/jadwal-ibadahs/{id}', [JadwalIbadahGuestController::class, 'show']);
+    Route::get('/pastorals', [PastoralGuestController::class, 'index']);
+    Route::get('/jemaats/count', [JemaatGuestController::class, 'count']);
+    Route::get('/departemens', [DepartemenGuestController::class, 'index']);
+    Route::get('/events', [EventGuestController::class, 'index']);
+    Route::get('/galeris', [GaleriGuestController::class, 'index']);
+});
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('api.auth')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/warta', [WartaController::class, 'index']);
+    Route::get('/warta/{id}', [WartaController::class, 'show']);
+    Route::get('/jadwal-ibadah', [JadwalIbadahController::class, 'index']);
+    Route::get('/pastoral', [PastoralController::class, 'index']);
+    Route::get('/jemaats/count', [JemaatController::class, 'count']);
+    Route::get('/departemen', [DepartemenController::class, 'index']);
+    Route::get('/event', [EventController::class, 'index']);
+    Route::get('/kegiatan', [KegiatanController::class, 'index']);
+    Route::get('kegiatan/{id?}', [KegiatanController::class, 'index']);
+    Route::get('/permohonan-doa', [PermohonanDoaApiController::class, 'index']);
+    Route::post('/permohonan-doa', [PermohonanDoaApiController::class, 'store']);
+    Route::get('/permohonan-doa/{id}', [PermohonanDoaApiController::class, 'show']);
+    Route::get('/kategori-doa', [PermohonanDoaApiController::class, 'getKategoriDoa']);
+    Route::get('/baptis', [BaptisApiController::class, 'index']);
+    Route::post('/baptis', [BaptisApiController::class, 'store']);
+    Route::get('/baptis/{id}', [BaptisApiController::class, 'show']);
+    Route::get('/penyerahan-anak', [PenyerahanAnakApiController::class, 'index']);
+    Route::post('/penyerahan-anak', [PenyerahanAnakApiController::class, 'store']);
+    Route::get('/penyerahan-anak/{id}', [PenyerahanAnakApiController::class, 'show']);
+    Route::get('/pemberkatan-nikah', [PemberkatanNikahApiController::class, 'index']);
+    Route::post('/pemberkatan-nikah', [PemberkatanNikahApiController::class, 'store']);
+    Route::get('/pemberkatan-nikah/{id}', [PemberkatanNikahApiController::class, 'show']);
+});
+
+Route::prefix('pastoral')->middleware(['api.auth', 'pastoral'])->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/warta', [WartaController::class, 'index']);
+    Route::get('/warta/{id}', [WartaController::class, 'show']);
+    Route::get('/jadwal-ibadah', [JadwalIbadahController::class, 'index']);
+    Route::get('/jemaats/count', [JemaatController::class, 'count']);
+    Route::get('/departemen', [DepartemenController::class, 'index']);
+    Route::get('/event', [EventController::class, 'index']);
+    Route::get('/kegiatan', [KegiatanController::class, 'index']);
+    Route::get('/pastoral', [PastoralPastoralController::class, 'index']);
+    Route::get('/pastoral/{id}', [PastoralPastoralController::class, 'show']);
+    Route::put('/pastoral/{id}', [PastoralPastoralController::class, 'update']);
+    Route::get('/jemaat', [PastoralJemaatController::class, 'index']);
+    Route::post('/jemaat', [PastoralJemaatController::class, 'store']);
+    Route::put('/jemaat/{id}', [PastoralJemaatController::class, 'update']);
+    Route::get('/permohonan', [PermohonanController::class, 'index']);
+    Route::put('/permohonan/{type}/{id}', [PermohonanController::class, 'updateStatus']);
+});
