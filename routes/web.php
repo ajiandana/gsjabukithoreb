@@ -51,6 +51,7 @@ Route::middleware(['auth', 'admin'])->group(function() {
     Route::get('jemaat/{jemaat}/preview', [JemaatController::class, 'preview'])->name('jemaat.preview');
     Route::resource('event', EventController::class);
     Route::resource('departemen', DepartemenController::class)->parameters(['departemen' => 'departemen']);
+    Route::post('/departemen/{departemen}/delete-slider-image', [DepartemenController::class, 'deleteSliderImage'])->name('departemen.delete-slider-image');
     Route::resource('kegiatan', KegiatanController::class);
     Route::delete('galeri/{gambar}', [KegiatanController::class, 'destroyImage'])->name('galeri.destroy');
     Route::resource('kategori-doa', KategoriDoaController::class)->except(['show']);

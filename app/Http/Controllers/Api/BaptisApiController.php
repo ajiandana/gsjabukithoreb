@@ -81,4 +81,57 @@ class BaptisApiController extends Controller
             'data' => $baptis
         ]);
     }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'nama' => 'sometimes|string|max:100',
+            'nama_ayah' => 'required|string|max:100',
+            'nama_ibu' => 'required|string|max:100',
+            'tempat_lahir' => 'required|string|max:100',
+            'tgl_lahir' => 'required|date|before_or_equal:today',
+            'no_hp' => 'required|string|regex:/^[0-9]{10,15}$/'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $baptis = Baptis::where('user_id', Auth::id())->find($id);
+        if (!$baptis) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Permohonan baptis tidak ditemukan'
+            ], 404);
+        }
+
+        $baptis->update($request->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permohonan baptis berhasil diperbarui',
+            'data' => $baptis
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $baptis = Baptis::where('user_id', Auth::id())->find($id);
+        if (!$baptis) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Permohonan baptis tidak ditemukan'
+            ], 404);
+        }
+
+        $baptis->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permohonan baptis berhasil dihapus'
+        ]);
+    }
 }

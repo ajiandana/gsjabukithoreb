@@ -1,13 +1,14 @@
 @extends('layouts.app')
 
 @section('title', isset($departemen) ? 'Edit Departemen' : 'Tambah Departemen')
+
 @section('content')
     <div class="card">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">{{ isset($departemen) ? 'Edit' : 'Tambah' }} Departemen</h5>
         </div>
         <div class="card-body">
-            <form action="{{ isset($departemen) ? route('departemen.update', $departemen->id) : route('departemen.store') }}" method="POST">
+            <form action="{{ isset($departemen) ? route('departemen.update', $departemen->id) : route('departemen.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @if(isset($departemen)) @method('PUT') @endif
 
@@ -36,6 +37,41 @@
                             <label class="form-label">Informasi</label>
                             <textarea class="form-control" name="informasi" rows="3">{{ $departemen->informasi ?? old('informasi') }}</textarea>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Slider Images Section -->
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="mt-3 mb-3">Slider Images</h5>
+                        
+                        @if(isset($departemen) && $departemen->slider_images)
+                            <div class="mb-3">
+                                <label class="form-label">Gambar Slider Saat Ini</label>
+                                <div class="row" id="current-images">
+                                    @foreach($departemen->slider_images as $index => $image)
+                                        <div class="col-md-3 mb-2" id="image-{{ $index }}">
+                                            <div class="card">
+                                                <img src="{{ asset('storage/' . $image) }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                                <div class="card-body p-2">
+                                                    <button type="button" class="btn btn-danger btn-sm w-100" onclick="deleteSliderImage({{ $departemen->id }}, {{ $index }})">
+                                                        <i class="bi bi-trash"></i> Hapus
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="mb-3">
+                            <label class="form-label">Upload Gambar Slider Baru</label>
+                            <input type="file" class="form-control" name="slider_images[]" multiple accept="image/*" onchange="previewImages(this)">
+                            <small class="form-text text-muted">Pilih beberapa gambar sekaligus. Format: JPG, PNG, GIF. Maksimal 2MB per file.</small>
+                        </div>
+
+                        <div id="image-preview" class="row mb-3"></div>
                     </div>
                 </div>
 
@@ -103,4 +139,60 @@
             </form>
         </div>
     </div>
+
+    <script>
+        function previewImages(input) {
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+
+            if (input.files) {
+                for (let i = 0; i < input.files.length; i++) {
+                    const file = input.files[i];
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-3 mb-2';
+                        col.innerHTML = `
+                            <div class="card">
+                                <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <small class="text-muted">${file.name}</small>
+                                </div>
+                            </div>
+                        `;
+                        preview.appendChild(col);
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function deleteSliderImage(departemenId, imageIndex) {
+            if (confirm('Yakin ingin menghapus gambar ini?')) {
+                fetch(`/departemen/${departemenId}/delete-slider-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        image_index: imageIndex
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`image-${imageIndex}`).remove();
+                        alert('Gambar berhasil dihapus!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus gambar');
+                });
+            }
+        }
+    </script>
 @endsection

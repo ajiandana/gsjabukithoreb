@@ -11,33 +11,49 @@ class JadwalIbadahController extends Controller
 {
     public function index(): JsonResponse
     {
-        $jadwal = JadwalIbadah::latest()->get([
-            'id', 'judul', 'gambar', 'bulan', 'tahun'
-        ]);
+        try {
+            $jadwal = JadwalIbadah::latest()->get([
+                'id', 'judul', 'gambar', 'bulan', 'tahun', 'keterangan'
+            ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'List jadwal ibadah berhasil diambil',
-            'data' => $jadwal
-        ]);
+            return response()->json([
+                'status' => true,
+                'message' => 'List jadwal ibadah berhasil diambil',
+                'data' => $jadwal
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal mengambil data jadwal ibadah',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show($id): JsonResponse
     {
-        $jadwal = JadwalIbadah::select('id', 'judul', 'gambar', 'bulan', 'tahun', 'keterangan')
-            ->find($id);
+        try {
+            $jadwal = JadwalIbadah::select('id', 'judul', 'gambar', 'bulan', 'tahun', 'keterangan')
+                ->find($id);
 
-        if (!$jadwal) {
+            if (!$jadwal) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Jadwal ibadah tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Detail jadwal ibadah berhasil diambil',
+                'data' => $jadwal
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Jadwal ibadah tidak ditemukan'
-            ], 404);
+                'message' => 'Gagal mengambil detail jadwal ibadah',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Detail jadwal ibadah berhasil diambil',
-            'data' => $jadwal
-        ]);
     }
 }

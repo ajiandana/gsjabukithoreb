@@ -70,4 +70,55 @@ class PenyerahanAnakApiController extends Controller
             'data' => $penyerahan
         ]);
     }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'nama_anak' => 'sometimes|required|string|max:100',
+            'nama_ayah' => 'required|string|max:100',
+            'nama_ibu' => 'required|string|max:100',
+            'no_hp' => 'required|string|regex:/^[0-9]{10,15}$/'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $penyerahan = PenyerahanAnak::where('user_id', Auth::id())->find($id);
+        if (!$penyerahan) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Permohonan anda tidak ditemukan'
+            ], 404);
+        }
+
+        $penyerahan->update($request->all());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permohonan anda berhasil diperbarui',
+            'data' => $penyerahan
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $penyerahan = PenyerahanAnak::where('user_id', Auth::id())->find($id);
+        if (!$penyerahan) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Permohonan anda tidak ditemukan'
+            ], 404);
+        }
+
+        $penyerahan->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permohonan anda berhasil dihapus'
+        ]);
+    }
 }

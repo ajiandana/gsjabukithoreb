@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Manajemen Departemen')
+
 @section('content')
     <div class="card">
         <div class="card-header bg-primary text-white">
@@ -24,6 +25,7 @@
                             <th>Nama Departemen</th>
                             <th>Gembala</th>
                             <th>Ketua</th>
+                            <th>Slider Images</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -34,6 +36,13 @@
                                 <td>{{ $departemen->nama }}</td>
                                 <td>{{ $departemen->pastoral?->nama ?? '-' }}</td>
                                 <td>{{ $departemen->ketua?->nama ?? '-' }}</td>
+                                <td>
+                                    @if($departemen->slider_images && count($departemen->slider_images) > 0)
+                                        <span class="badge bg-success">{{ count($departemen->slider_images) }} gambar</span>
+                                    @else
+                                        <span class="badge bg-secondary">Tidak ada</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <a href="{{ route('departemen.edit', ['departemen' => $departemen->id]) }}" class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil"></i>

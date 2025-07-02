@@ -12,33 +12,15 @@ class DepartemenController extends Controller
 {
     public function index(): JsonResponse
     {
-        // $departemen = Departemen::with([
-        //     'pastoral:id,nama',
-        //     'pengurus.jemaat:id,nama'
-        // ])->get();
-
-        // $result = $departemen->map(function ($item) {
-        //     return [
-        //         'nama' => $item->nama,
-        //         'informasi' => $item->informasi,
-        //         'pastoral' => $item->pastoral ? $item->pastoral->nama : null,
-        //         'pengurus' => $item->pengurus->map(function ($p) {
-        //             return [
-        //                 'nama' => $p->jemaat->nama ?? null,
-        //                 'jabatan' => $p->jabatan,
-        //             ];
-        //         })
-        //     ];
-        // });
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'Daftar departemen berhasil diambil',
-        //     'data' => $result
-        // ]);
         $departemens = DB::table('departemens')
             ->leftJoin('pastorals', 'departemens.pastoral_id', '=', 'pastorals.id')
-            ->select('departemens.id', 'departemens.nama as nama_departemen', 'departemens.informasi', 'pastorals.nama as gembala')
+            ->select(
+                'departemens.id', 
+                'departemens.nama as nama_departemen', 
+                'departemens.informasi', 
+                'departemens.slider_images',
+                'pastorals.name as gembala'
+            )
             ->get();
 
         foreach ($departemens as $departemen) {
@@ -48,11 +30,72 @@ class DepartemenController extends Controller
                 ->select('jemaats.nama', 'pengurus_departemens.jabatan')
                 ->get();
             $departemen->pengurus = $pengurus;
+
+            $departemen->slider_images = $this->formatSliderImages($departemen->slider_images);
         }
 
         return response()->json([
             'status' => true,
+            'message' => 'Daftar departemen berhasil diambil',
             'data' => $departemens
         ]);
+    }
+
+    public function show($id): JsonResponse
+    {
+        $departemen = DB::table('departemens')
+            ->leftJoin('pastorals', 'departemens.pastoral_id', '=', 'pastorals.id')
+            ->where('departemens.id', $id)
+            ->select(
+                'departemens.id', 
+                'departemens.nama as nama_departemen', 
+                'departemens.informasi', 
+                'departemens.slider_images',
+                'pastorals.name as gembala'
+            )
+            ->first();
+
+        if (!$departemen) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Departemen tidak ditemukan'
+            ], 404);
+        }
+
+        $pengurus = DB::table('pengurus_departemens')
+            ->join('jemaats', 'pengurus_departemens.jemaat_id', '=', 'jemaats.id')
+            ->where('pengurus_departemens.departemen_id', $departemen->id)
+            ->select('jemaats.nama', 'pengurus_departemens.jabatan')
+            ->get();
+        $departemen->pengurus = $pengurus;
+
+        $departemen->slider_images = $this->formatSliderImages($departemen->slider_images);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Detail departemen berhasil diambil',
+            'data' => $departemen
+        ]);
+    }
+
+    private function formatSliderImages($sliderImages)
+    {
+        if (!$sliderImages) {
+            return [];
+        }
+
+        $images = json_decode($sliderImages, true);
+        
+        if (!is_array($images)) {
+            return [];
+        }
+
+        return array_map(function ($image, $index) {
+            return [
+                'index' => $index,
+                'url' => asset('storage/' . $image),
+                'filename' => basename($image)
+            ];
+        }, $images, array_keys($images));
     }
 }
